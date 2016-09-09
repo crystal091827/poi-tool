@@ -1,0 +1,108 @@
+<html>
+	<head>
+		<title>r2d4简单教程</title>	
+	</head>	
+	
+	<body>
+			<div>
+      	<h2>5分钟实现Java对象与Excel文件的相互转换</h2>
+      </div>
+      <hr>
+      	
+      <div>
+      	<p><strong>Step 1. 根配置文件</strong></p>
+      	<p>
+      		首先，我们查看一下r2d4.jar中的cfg.porperties文件。<strong>注意，这个文件名确实是命名时的拼写错误，它现在真的叫这个名字，不过下一版本会修改为正确的</strong>	
+      		这里面只有一行配置信息: <br>
+      		rootConfig=rootConfig.xml<br>
+      		这个文件是r2d4启动时的根配置文件，如果你觉得这名字太土鳖，可以自己换一个潮一点的。<br>
+      		<strong>
+      				默认状态下，rootConfig.xml 文件是在classpath根目录下的，也就是你代码中的src目录下<br>
+      				如果你喜欢把配置文件放在一个专门的配置文件目录下，就需要写它的全路径名了。<br>
+      				恩，配置文件单独管理确实是个好办法。<br>
+      		</strong>
+      	</p>
+      	<p>
+      		然后，我们看下根配置文件里该写点什么
+      		<p>
+      			<a href="rootConfig.xml">点我点我点我</a>
+      		</p>
+      		<p>
+      			<strong>下面是配置文件的内容说明</strong>
+      			<p>
+								settings 是一些全局的配置。目前支持的有<br>
+									model: 指定r2d4的工作模式， develop表示开发模式， 在使用者每次调用r2d4的接口时，都会重新加载配置。deploy是部署模式，你懂的<br>
+									storage : 指定r2d4生成的文件会保存在哪里。在你需要把数据做导出时，r2d4就会把文件写到这个路径下。墙裂推荐这个属性要配置，<br>
+														否则，r2d4在运行时环境的system.dir下创建一个名叫exportFile的目录，把文件写在这里<br>
+								
+								files 用来把配置文件组织到一起。<br>
+									file 是告诉r2d4你的一个配置文件在什么地方，location属性就很好明白了,只是要注意，这里一定要写绝对路径。相对路径在下一版本中支持
+								
+								r2d4使用配置文件的方式，来声明Excel文件与Java类之间的对应关系。一个file中配置的就是一个Java类的对象在导入时，它对应的Excel文件应该是什么结构
+      			</p>	
+      		</p>
+      	</p>	
+      </div>
+      <hr>
+      <div>
+      		<p><strong>Step 2. Java类配置文件</strong></p>
+      		<p>
+      			下面是一个Java类对应的配置。	
+      		</p>
+      		<p>
+      			<a href="file.xml">点我点我点我</a>
+      		</p>
+      		<p>
+      				file定义了一个Excel文件的模板<br>
+      					id 是一个模板的唯一标识，多个文件内不能重复。<br>
+      					class  Java类的全路径名 <br>
+      				row 把所有的列组织在一起<br>
+      					cell 定义了一个单元格中的信息<br>
+      						property 配置该列对应的Java类中的属性的名称。<br>
+      						title 配置Excel文件中的标题行的名称<br>
+      						type  配置该列的数据类型，目前支持的数据类型有： string, int, long, float, double<br>
+      						nullAble 配置该列是否允许为空。<br>
+      		</p>
+      		<p>	
+      		</p>
+      </div>
+      <hr>
+      <div>
+      	<p><strong>Step 3. Java编码</strong></p>
+      	<p>
+      		<p>读取文件</p>	
+      		<p>
+      				/**<br>
+      				 * 文件类型需要程序员根据文件名后缀去判断是2007还是2003<br>
+      				 * 文件类型枚举类为 FileType<br>
+      				 */<br>
+      				Feedback feedback = FileReader.getInstance().read(file.xml里你配置的id, Excel文件对象, 文件类型枚举类型);<br>
+      				
+      				feedback.hasTitleError() 方法判断用户导入的Excel文件中的标题行中的单元格与file.xml中的配置是否相同<br>
+      				如果返回为true，说明用户导入的文件中的标题与配置不匹配。错误信息用feedback.getTitleErrorInfo() 方法获取<br>
+      				
+      				feedback.hasError() 方法判断导入的数据是否存在错误，比如：数据类型与配置不匹配，或者非空项为空。<br>
+      				你可以用feedback.getErrorData() 方法，可以获取到错误信息 <br>
+      				对于导入的文件中的数据错误，r2d4 提供了 ErrorFileCreator 工具类，你可以使用它的 create方法，把错误数据写到一个新的Excel文件中，然后给用户提供下载功能。<br>
+      				
+      				feedback.getResult() 方法获取读取成功的数据<br>
+      		</p>
+      	<p>
+      			<p>写入文件</p>	
+      			<p>
+      					File file = FileWriter.getInstance().writeFile(file.xml里你配置的id, 文件名称, Java对象的List集合, FileType.EXCEL2003);<br>
+      			</p>
+      </div>
+      <hr>
+      <div>
+      	<p>
+      			好了，就这么多， 后续版本中，r2d4提供的功能会有：<br>
+      			1. 更改读取文件后的结果Feedback对象的结构。现在的错误信息提供方式是在是太土鳖了<br>
+      			2. 支持java.util.Date数据类型， 以及Excel中的简单计算公式<br>
+      			3. 提供编程接口给程序员，来协助程序员定义自己的数据校验方式<br>
+      			敬请期待
+      		</p>
+      	
+      </div>
+	</body>
+</html>
